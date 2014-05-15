@@ -248,15 +248,11 @@ Therefore #receiver sends a packet across the token ring network, until either
 		return result;
 	}
 
+	/**
+	 * @deprecated Use {@link lanSimulation.internals.Node#logRequest(Writer,lanSimulation.Network)} instead
+	 */
 	private void logRequest(Writer report, Node startNode) {
-		try {
-			report.write("\tNode '");
-			report.write(startNode.name_);
-			report.write("' passes packet on.\n");
-			report.flush();
-		} catch (IOException exc) {
-			// just ignore
-		};
+		startNode.logRequest(report, this);
 	}
 
 	private boolean printDocument (Node printer, Packet document, Writer report) {
