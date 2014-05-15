@@ -39,7 +39,7 @@ public class Network {
     Holds a pointer to some "first" node in the token ring.
     Used to ensure that various printing operations return expected behaviour.
 	 */
-	private Node firstNode_;
+	public Node firstNode_;
 	/**
     Maps the names of workstations on the actual workstations.
     Used to initiate the requests for the network.
@@ -260,15 +260,6 @@ Therefore #receiver sends a packet across the token ring network, until either
 	 */
 	private boolean printDocument (Node printer, Packet document, Writer report) {
 		return printer.printDocument(this, document, report);
-	}
-
-	public void printAccounting(Writer report, String author, String title)
-			throws IOException {
-		report.write("\tAccounting -- author = '");
-		report.write(author);
-		report.write("' -- title = '");
-		report.write(title);
-		report.write("'\n");
 	}
 
 	/**
