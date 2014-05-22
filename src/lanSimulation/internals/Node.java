@@ -47,11 +47,11 @@ public class Node {
 		assert (type >= NODE) & (type <= PRINTER);
 		switch (type) {
 		case PRINTER:
-			return new Printer(type, name);
+			return new Printer(name);
 		case WORKSTATION:
-			return new Workstation(type, name);
+			return new Workstation(name);
 		default:
-			return new Node(type, name);
+			return new Node(name);
 		}
 	}
 
@@ -59,18 +59,17 @@ public class Node {
 		assert (type >= NODE) & (type <= PRINTER);
 		switch (type) {
 		case PRINTER:
-			return new Printer(type, name, nextNode);
+			return new Printer(name, nextNode);
 		case WORKSTATION:
-			return new Workstation(type, name, nextNode);
+			return new Workstation(name, nextNode);
 		default:
-			return new Node(type, name, nextNode);
+			return new Node(name, nextNode);
 		}
 	}
 
 	/**
 	 * Holds the type of the Node.
 	 */
-	public byte type_;
 	/**
 	 * Holds the name of the Node.
 	 */
@@ -88,8 +87,7 @@ public class Node {
 	 * <strong>Precondition:</strong> (type >= NODE) & (type <= PRINTER);
 	 * </p>
 	 */
-	protected Node(byte type, String name) {
-		type_ = type;
+	protected Node(String name) {
 		name_ = name;
 		nextNode_ = null;
 	}
@@ -101,8 +99,7 @@ public class Node {
 	 * <strong>Precondition:</strong> (type >= NODE) & (type <= PRINTER);
 	 * </p>
 	 */
-	protected Node(byte type, String name, Node nextNode) {
-		type_ = type;
+	protected Node(String name, Node nextNode) {
 		name_ = name;
 		nextNode_ = nextNode;
 	}
@@ -124,51 +121,6 @@ public class Node {
 		String title = "Untitled";
 		int startPos = 0, endPos = 0;
 
-		if (type_ == Node.PRINTER) {
-			try {
-				if (document.message_.startsWith("!PS")) {
-					startPos = document.message_.indexOf("author:");
-					if (startPos >= 0) {
-						endPos = document.message_.indexOf(".", startPos + 7);
-						if (endPos < 0) {
-							endPos = document.message_.length();
-						}
-						;
-						author = document.message_.substring(startPos + 7,
-								endPos);
-					}
-					;
-					startPos = document.message_.indexOf("title:");
-					if (startPos >= 0) {
-						endPos = document.message_.indexOf(".", startPos + 6);
-						if (endPos < 0) {
-							endPos = document.message_.length();
-						}
-						;
-						title = document.message_.substring(startPos + 6,
-								endPos);
-					}
-					;
-					network.firstNode_.printAccounting(report, author, title);
-					report.write(">>> Postscript job delivered.\n\n");
-					report.flush();
-				} else {
-					title = "ASCII DOCUMENT";
-					if (document.message_.length() >= 16) {
-						author = document.message_.substring(8, 16);
-					}
-					;
-					network.firstNode_.printAccounting(report, author, title);
-					report.write(">>> ASCII Print job delivered.\n\n");
-					report.flush();
-				}
-				;
-			} catch (IOException exc) {
-				// just ignore
-			}
-			;
-			return true;
-		} else {
 			try {
 				report.write(">>> Destinition is not a printer, print job cancelled.\n\n");
 				report.flush();
@@ -177,7 +129,6 @@ public class Node {
 			}
 			;
 			return false;
-		}
 	}
 
 	public void printAccounting(Writer report, String author, String title)
@@ -189,122 +140,17 @@ public class Node {
 		report.write("'\n");
 	}
 
-	/**
-	 * Write an XML representation of #receiver on the given #buf.
-	 * <p>
-	 * <strong>Precondition:</strong> isInitialized();
-	 * </p>
-	 * 
-	 * @param network
-	 *            TODO
-	 * @param buf
-	 *            TODO
-	 */
-	public void printXMLOn(Network network, StringBuffer buf) {
-		assert network.isInitialized();
-
-		Node currentNode = this;
-		buf.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n\n<network>");
-		do {
-			buf.append("\n\t");
-			switch (currentNode.type_) {
-			case Node.NODE:
-				buf.append("<node>");
-				buf.append(currentNode.name_);
-				buf.append("</node>");
-				break;
-			case Node.WORKSTATION:
-				buf.append("<workstation>");
-				buf.append(currentNode.name_);
-				buf.append("</workstation>");
-				break;
-			case Node.PRINTER:
-				buf.append("<printer>");
-				buf.append(currentNode.name_);
-				buf.append("</printer>");
-				break;
-			default:
-				buf.append("<unknown></unknown>");
-				;
-				break;
-			}
-			;
-			currentNode = currentNode.nextNode_;
-		} while (currentNode != this);
-		buf.append("\n</network>");
+	public void printXMLOn(StringBuffer buf, Network network) {
+			buf.append("<node>");
+			buf.append(name_);
+			buf.append("</node>");
 	}
 
-	/**
-	 * Write a HTML representation of #receiver on the given #buf.
-	 * <p>
-	 * <strong>Precondition:</strong> isInitialized();
-	 * </p>
-	 * 
-	 * @param network
-	 *            TODO
-	 * @param buf
-	 *            TODO
-	 */
-	public void printHTMLOn(Network network, StringBuffer buf) {
-		assert network.isInitialized();
-
-		buf.append("<HTML>\n<HEAD>\n<TITLE>LAN Simulation</TITLE>\n</HEAD>\n<BODY>\n<H1>LAN SIMULATION</H1>");
-		Node currentNode = this;
-		buf.append("\n\n<UL>");
-		do {
-			buf.append("\n\t<LI> ");
-			currentNode.printNodeName(buf, network);
-			buf.append(" </LI>");
-			currentNode = currentNode.nextNode_;
-		} while (currentNode != this);
-		buf.append("\n\t<LI>...</LI>\n</UL>\n\n</BODY>\n</HTML>\n");
-	}
-
-	/**
-	 * Write a printable representation of #receiver on the given #buf.
-	 * <p>
-	 * <strong>Precondition:</strong> isInitialized();
-	 * </p>
-	 * 
-	 * @param network
-	 *            TODO
-	 * @param buf
-	 *            TODO
-	 */
-	public void printOn(Network network, StringBuffer buf) {
-		assert network.isInitialized();
-		Node currentNode = this;
-		do {
-			currentNode.printNodeName(buf, network);
-			buf.append(" -> ");
-			currentNode = currentNode.nextNode_;
-		} while (currentNode != this);
-		buf.append(" ... ");
-	}
-
-	public void printNodeName(StringBuffer buf, Network network) {
-		switch (type_) {
-		case Node.NODE:
+	public void printOn(StringBuffer buf, Network network) {
 			buf.append("Node ");
 			buf.append(name_);
 			buf.append(" [Node]");
-			break;
-		case Node.WORKSTATION:
-			buf.append("Workstation ");
-			buf.append(name_);
-			buf.append(" [Workstation]");
-			break;
-		case Node.PRINTER:
-			buf.append("Printer ");
-			buf.append(name_);
-			buf.append(" [Printer]");
-			break;
-		default:
-			buf.append("(Unexpected)");
-			;
-			break;
-		}
-		;
+
 	}
 
 }

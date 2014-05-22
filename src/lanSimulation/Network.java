@@ -110,7 +110,7 @@ Answer whether #receiver contains a workstation with the given name.
 		if (n == null) {
 			return false;
 		} else {
-			return n.type_ == Node.WORKSTATION;
+			return n instanceof Workstation;
 		}
 	};
 
@@ -136,15 +136,15 @@ A consistent token ring network
 		iter = workstations_.elements();
 		while (iter.hasMoreElements()) {
 			currentNode = (Node) iter.nextElement();
-			if (currentNode.type_ != Node.WORKSTATION) {return false;};
+			if (! (currentNode instanceof Workstation)) {return false;};
 		};
 		//enumerate the token ring, verifying whether all workstations are registered
 		//also count the number of printers and see whether the ring is circular
 		currentNode = firstNode_;
 		while (! encountered.containsKey(currentNode.name_)) {
 			encountered.put(currentNode.name_, currentNode);
-			if (currentNode.type_ == Node.WORKSTATION) {workstationsFound++;};
-			if (currentNode.type_ == Node.PRINTER) {printersFound++;};
+			if (currentNode instanceof Workstation) {workstationsFound++;};
+			if (currentNode instanceof Printer) {printersFound++;};
 			currentNode = currentNode.nextNode_;
 		};
 		if (currentNode != firstNode_) {return false;};//not circular
@@ -277,8 +277,77 @@ Return a printable representation of #receiver.
 	public String toString () {
 		assert isInitialized();
 		StringBuffer buf = new StringBuffer(30 * workstations_.size());
-		firstNode_.printOn(this, buf);
+		printOn(firstNode_, buf);
 		return buf.toString();
+	}
+
+	/**
+	 * Write an XML representation of #receiver on the given #buf.
+	 * <p>
+	 * <strong>Precondition:</strong> isInitialized();
+	 * </p>
+	 * 
+	 * @param node TODO
+	 * @param buf
+	 *            TODO
+	 */
+	public void printXMLOn(Node node, StringBuffer buf) {
+		assert isInitialized();
+	
+		Node currentNode = node;
+		buf.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n\n<network>");
+		do {
+			buf.append("\n\t");
+			currentNode.printXMLOn(buf, this);
+			currentNode = currentNode.nextNode_;
+		} while (currentNode != node);
+		buf.append("\n</network>");
+	}
+
+	/**
+	 * Write a HTML representation of #receiver on the given #buf.
+	 * <p>
+	 * <strong>Precondition:</strong> isInitialized();
+	 * </p>
+	 * 
+	 * @param node TODO
+	 * @param buf
+	 *            TODO
+	 */
+	public void printHTMLOn(Node node, StringBuffer buf) {
+		assert isInitialized();
+	
+		buf.append("<HTML>\n<HEAD>\n<TITLE>LAN Simulation</TITLE>\n</HEAD>\n<BODY>\n<H1>LAN SIMULATION</H1>");
+		Node currentNode = node;
+		buf.append("\n\n<UL>");
+		do {
+			buf.append("\n\t<LI> ");
+			currentNode.printOn(buf, this);
+			buf.append(" </LI>");
+			currentNode = currentNode.nextNode_;
+		} while (currentNode != node);
+		buf.append("\n\t<LI>...</LI>\n</UL>\n\n</BODY>\n</HTML>\n");
+	}
+
+	/**
+	 * Write a printable representation of #receiver on the given #buf.
+	 * <p>
+	 * <strong>Precondition:</strong> isInitialized();
+	 * </p>
+	 * 
+	 * @param node TODO
+	 * @param buf
+	 *            TODO
+	 */
+	public void printOn(Node node, StringBuffer buf) {
+		assert isInitialized();
+		Node currentNode = node;
+		do {
+			currentNode.printOn(buf, this);
+			buf.append(" -> ");
+			currentNode = currentNode.nextNode_;
+		} while (currentNode != node);
+		buf.append(" ... ");
 	}
 
 }
