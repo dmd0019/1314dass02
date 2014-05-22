@@ -25,55 +25,83 @@ import java.io.Writer;
 import lanSimulation.Network;
 
 /**
-A <em>Node</em> represents a single Node in a Local Area Network (LAN).
-Several types of Nodes exist.
+ * A <em>Node</em> represents a single Node in a Local Area Network (LAN).
+ * Several types of Nodes exist.
  */
 public class Node {
-	//enumeration constants specifying all legal node types
+	// enumeration constants specifying all legal node types
 	/**
-    A node with type NODE has only basic functionality.
+	 * A node with type NODE has only basic functionality.
 	 */
 	public static final byte NODE = 0;
 	/**
-    A node with type WORKSTATION may initiate requests on the LAN.
+	 * A node with type WORKSTATION may initiate requests on the LAN.
 	 */
 	public static final byte WORKSTATION = 1;
 	/**
-    A node with type PRINTER may accept packages to be printed.
+	 * A node with type PRINTER may accept packages to be printed.
 	 */
 	public static final byte PRINTER = 2;
 
+	public static Node createNode(byte type, String name) {
+		assert (type >= NODE) & (type <= PRINTER);
+		switch (type) {
+		case PRINTER:
+			return new Printer(type, name);
+		case WORKSTATION:
+			return new Workstation(type, name);
+		default:
+			return new Node(type, name);
+		}
+	}
+
+	public static Node createNode(byte type, String name, Node nextNode) {
+		assert (type >= NODE) & (type <= PRINTER);
+		switch (type) {
+		case PRINTER:
+			return new Printer(type, name, nextNode);
+		case WORKSTATION:
+			return new Workstation(type, name, nextNode);
+		default:
+			return new Node(type, name, nextNode);
+		}
+	}
+
 	/**
-    Holds the type of the Node.
+	 * Holds the type of the Node.
 	 */
 	public byte type_;
 	/**
-    Holds the name of the Node.
+	 * Holds the name of the Node.
 	 */
 	public String name_;
 	/**
-    Holds the next Node in the token ring architecture.
-    @see lanSimulation.internals.Node
+	 * Holds the next Node in the token ring architecture.
+	 * 
+	 * @see lanSimulation.internals.Node
 	 */
 	public Node nextNode_;
 
 	/**
-Construct a <em>Node</em> with given #type and #name.
-<p><strong>Precondition:</strong> (type >= NODE) & (type <= PRINTER);</p>
+	 * Construct a <em>Node</em> with given #type and #name.
+	 * <p>
+	 * <strong>Precondition:</strong> (type >= NODE) & (type <= PRINTER);
+	 * </p>
 	 */
-	public Node(byte type, String name) {
-		assert (type >= NODE) & (type <= PRINTER);
+	protected Node(byte type, String name) {
 		type_ = type;
 		name_ = name;
 		nextNode_ = null;
 	}
 
 	/**
-Construct a <em>Node</em> with given #type and #name, and which is linked to #nextNode.
-<p><strong>Precondition:</strong> (type >= NODE) & (type <= PRINTER);</p>
+	 * Construct a <em>Node</em> with given #type and #name, and which is linked
+	 * to #nextNode.
+	 * <p>
+	 * <strong>Precondition:</strong> (type >= NODE) & (type <= PRINTER);
+	 * </p>
 	 */
-	public Node(byte type, String name, Node nextNode) {
-		assert (type >= NODE) & (type <= PRINTER);
+	protected Node(byte type, String name, Node nextNode) {
 		type_ = type;
 		name_ = name;
 		nextNode_ = nextNode;
@@ -87,41 +115,58 @@ Construct a <em>Node</em> with given #type and #name, and which is linked to #ne
 			report.flush();
 		} catch (IOException exc) {
 			// just ignore
-		};
+		}
+		;
 	}
 
-	public boolean printDocument (Network network, Packet document, Writer report) {
+	public boolean printDocument(Network network, Packet document, Writer report) {
 		String author = "Unknown";
 		String title = "Untitled";
 		int startPos = 0, endPos = 0;
-	
+
 		if (type_ == Node.PRINTER) {
 			try {
 				if (document.message_.startsWith("!PS")) {
 					startPos = document.message_.indexOf("author:");
 					if (startPos >= 0) {
 						endPos = document.message_.indexOf(".", startPos + 7);
-						if (endPos < 0) {endPos = document.message_.length();};
-						author = document.message_.substring(startPos + 7, endPos);};
-						startPos = document.message_.indexOf("title:");
-						if (startPos >= 0) {
-							endPos = document.message_.indexOf(".", startPos + 6);
-							if (endPos < 0) {endPos = document.message_.length();};
-							title = document.message_.substring(startPos + 6, endPos);};
-							network.firstNode_.printAccounting(report, author, title);
-							report.write(">>> Postscript job delivered.\n\n");
-							report.flush();
+						if (endPos < 0) {
+							endPos = document.message_.length();
+						}
+						;
+						author = document.message_.substring(startPos + 7,
+								endPos);
+					}
+					;
+					startPos = document.message_.indexOf("title:");
+					if (startPos >= 0) {
+						endPos = document.message_.indexOf(".", startPos + 6);
+						if (endPos < 0) {
+							endPos = document.message_.length();
+						}
+						;
+						title = document.message_.substring(startPos + 6,
+								endPos);
+					}
+					;
+					network.firstNode_.printAccounting(report, author, title);
+					report.write(">>> Postscript job delivered.\n\n");
+					report.flush();
 				} else {
 					title = "ASCII DOCUMENT";
 					if (document.message_.length() >= 16) {
-						author = document.message_.substring(8, 16);};
-						network.firstNode_.printAccounting(report, author, title);
-						report.write(">>> ASCII Print job delivered.\n\n");
-						report.flush();
-				};
+						author = document.message_.substring(8, 16);
+					}
+					;
+					network.firstNode_.printAccounting(report, author, title);
+					report.write(">>> ASCII Print job delivered.\n\n");
+					report.flush();
+				}
+				;
 			} catch (IOException exc) {
 				// just ignore
-			};
+			}
+			;
 			return true;
 		} else {
 			try {
@@ -129,7 +174,8 @@ Construct a <em>Node</em> with given #type and #name, and which is linked to #ne
 				report.flush();
 			} catch (IOException exc) {
 				// just ignore
-			};
+			}
+			;
 			return false;
 		}
 	}
@@ -144,14 +190,19 @@ Construct a <em>Node</em> with given #type and #name, and which is linked to #ne
 	}
 
 	/**
-	Write an XML representation of #receiver on the given #buf.
-	<p><strong>Precondition:</strong> isInitialized();</p>
-	 * @param network TODO
-	 * @param buf TODO
+	 * Write an XML representation of #receiver on the given #buf.
+	 * <p>
+	 * <strong>Precondition:</strong> isInitialized();
+	 * </p>
+	 * 
+	 * @param network
+	 *            TODO
+	 * @param buf
+	 *            TODO
 	 */
-	public void printXMLOn (Network network, StringBuffer buf) {
+	public void printXMLOn(Network network, StringBuffer buf) {
 		assert network.isInitialized();
-	
+
 		Node currentNode = this;
 		buf.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n\n<network>");
 		do {
@@ -173,23 +224,30 @@ Construct a <em>Node</em> with given #type and #name, and which is linked to #ne
 				buf.append("</printer>");
 				break;
 			default:
-				buf.append("<unknown></unknown>");;
+				buf.append("<unknown></unknown>");
+				;
 				break;
-			};
+			}
+			;
 			currentNode = currentNode.nextNode_;
 		} while (currentNode != this);
 		buf.append("\n</network>");
 	}
 
 	/**
-	Write a HTML representation of #receiver on the given #buf.
-	<p><strong>Precondition:</strong> isInitialized();</p>
-	 * @param network TODO
-	 * @param buf TODO
+	 * Write a HTML representation of #receiver on the given #buf.
+	 * <p>
+	 * <strong>Precondition:</strong> isInitialized();
+	 * </p>
+	 * 
+	 * @param network
+	 *            TODO
+	 * @param buf
+	 *            TODO
 	 */
-	public void printHTMLOn (Network network, StringBuffer buf) {
+	public void printHTMLOn(Network network, StringBuffer buf) {
 		assert network.isInitialized();
-	
+
 		buf.append("<HTML>\n<HEAD>\n<TITLE>LAN Simulation</TITLE>\n</HEAD>\n<BODY>\n<H1>LAN SIMULATION</H1>");
 		Node currentNode = this;
 		buf.append("\n\n<UL>");
@@ -203,12 +261,17 @@ Construct a <em>Node</em> with given #type and #name, and which is linked to #ne
 	}
 
 	/**
-	Write a printable representation of #receiver on the given #buf.
-	<p><strong>Precondition:</strong> isInitialized();</p>
-	 * @param network TODO
-	 * @param buf TODO
+	 * Write a printable representation of #receiver on the given #buf.
+	 * <p>
+	 * <strong>Precondition:</strong> isInitialized();
+	 * </p>
+	 * 
+	 * @param network
+	 *            TODO
+	 * @param buf
+	 *            TODO
 	 */
-	public void printOn (Network network, StringBuffer buf) {
+	public void printOn(Network network, StringBuffer buf) {
 		assert network.isInitialized();
 		Node currentNode = this;
 		do {
@@ -237,9 +300,11 @@ Construct a <em>Node</em> with given #type and #name, and which is linked to #ne
 			buf.append(" [Printer]");
 			break;
 		default:
-			buf.append("(Unexpected)");;
+			buf.append("(Unexpected)");
+			;
 			break;
-		};
+		}
+		;
 	}
 
 }

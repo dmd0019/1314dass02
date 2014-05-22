@@ -71,10 +71,10 @@ Currently, the network looks as follows.
 	public static Network DefaultExample () {
 		Network network = new Network (2);
 
-		Node wsFilip = new Node (Node.WORKSTATION, "Filip");
-		Node n1 = new Node(Node.NODE, "n1");
-		Node wsHans = new Node (Node.WORKSTATION, "Hans");
-		Node prAndy = new Node (Node.PRINTER, "Andy");
+		Node wsFilip = Node.createNode(Node.WORKSTATION, "Filip");
+		Node n1 = Node.createNode(Node.NODE, "n1");
+		Node wsHans = Node.createNode(Node.WORKSTATION, "Hans");
+		Node prAndy = Node.createNode(Node.PRINTER, "Andy");
 
 		wsFilip.nextNode_ = n1;
 		n1.nextNode_ = wsHans;
